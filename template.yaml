@@ -86,7 +86,8 @@ Resources:
   getFruits:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-fruits.getFruitsHandler
+      Handler: get-fruits.getFruitsHandler
+      CodeUri: src/handlers/
       Runtime: nodejs22.x
       Architectures:
         - x86_64
@@ -99,11 +100,20 @@ Resources:
           Properties:
             Path: /fruits
             Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-fruits.ts
 
   getTrashDumps:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/get-trash-dumps.getTrashDumpsHandler
+      Handler: get-trash-dumps.getTrashDumpsHandler
+      CodeUri: src/handlers/
       Runtime: nodejs22.x
       Architectures:
         - x86_64
@@ -116,6 +126,14 @@ Resources:
           Properties:
             Path: /trash-dumps
             Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-trash-dumps.ts
 
 Outputs:
   WebEndpoint:
