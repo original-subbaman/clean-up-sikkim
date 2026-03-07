@@ -1,0 +1,29 @@
+[
+  {
+    "IndexName": "GSI-City-Points",
+    "KeySchema": [
+      { "AttributeName": "city", "KeyType": "HASH" },
+      { "AttributeName": "totalPoints", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-State-Points",
+    "KeySchema": [
+      { "AttributeName": "state", "KeyType": "HASH" },
+      { "AttributeName": "totalPoints", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-NationalLeaderboard",
+    "KeySchema": [
+      { "AttributeName": "leaderboardPartition", "KeyType": "HASH" },
+      { "AttributeName": "totalPoints", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  }
+]

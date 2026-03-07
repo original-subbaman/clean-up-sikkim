@@ -1,0 +1,38 @@
+[
+  {
+    "IndexName": "GSI-Pin-Events",
+    "KeySchema": [
+      { "AttributeName": "pinId", "KeyType": "HASH" },
+      { "AttributeName": "scheduledAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-City-Events",
+    "KeySchema": [
+      { "AttributeName": "city", "KeyType": "HASH" },
+      { "AttributeName": "scheduledAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-State-Events",
+    "KeySchema": [
+      { "AttributeName": "state", "KeyType": "HASH" },
+      { "AttributeName": "scheduledAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-OrganizerEvents",
+    "KeySchema": [
+      { "AttributeName": "organisedBy", "KeyType": "HASH" },
+      { "AttributeName": "scheduledAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "IndexName": "GSI-UserEvents",
+    "KeySchema": [
+      { "AttributeName": "userId", "KeyType": "HASH" },
+      { "AttributeName": "registeredAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "IndexName": "GSI-Geohash",
+    "KeySchema": [
+      { "AttributeName": "geohash", "KeyType": "HASH" },
+      { "AttributeName": "createdAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-City-Status",
+    "KeySchema": [
+      { "AttributeName": "city", "KeyType": "HASH" },
+      { "AttributeName": "status", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-State-Status",
+    "KeySchema": [
+      { "AttributeName": "state", "KeyType": "HASH" },
+      { "AttributeName": "status", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  },
+  {
+    "IndexName": "GSI-ReportedBy",
+    "KeySchema": [
+      { "AttributeName": "reportedBy", "KeyType": "HASH" },
+      { "AttributeName": "createdAt", "KeyType": "RANGE" }
+    ],
+    "Projection": { "ProjectionType": "ALL" },
+    "ProvisionedThroughput": { "ReadCapacityUnits": 5, "WriteCapacityUnits": 5 }
+  }
+]
