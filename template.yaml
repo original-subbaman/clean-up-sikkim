@@ -13,8 +13,6 @@ Globals:
     MemorySize: 128
     Environment:
       Variables:
-        MAIN_TABLE: !Ref MainTable
-        NOTIFICATIONS_TABLE_NAME: !Ref UserNotificationsTable
         DYNAMODB_ENDPOINT: http://host.docker.internal:8000
 
 Parameters:
@@ -27,93 +25,275 @@ Parameters:
     Description: "The deployment environment."
 
 Resources:
-  MainTable:
+  Users:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "clean-up-app-main-${Environment}"
+      TableName: Users
       AttributeDefinitions:
-        - AttributeName: PK
+        - AttributeName: userId
           AttributeType: S
-        - AttributeName: SK
+        - AttributeName: city
           AttributeType: S
-        - AttributeName: GSI1PK
+        - AttributeName: state
           AttributeType: S
-        - AttributeName: GSI1SK
+        - AttributeName: totalPoints
+          AttributeType: N
+        - AttributeName: leaderboardPartition
           AttributeType: S
-
       KeySchema:
-        - AttributeName: PK
+        - AttributeName: userId
           KeyType: HASH
-        - AttributeName: SK
-          KeyType: RANGE
-
       GlobalSecondaryIndexes:
-        - IndexName: GSI1
+        - IndexName: GSI-City-Points
           KeySchema:
-            - AttributeName: GSI1PK
+            - AttributeName: city
               KeyType: HASH
-            - AttributeName: GSI1SK
+            - AttributeName: totalPoints
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-State-Points
+          KeySchema:
+            - AttributeName: state
+              KeyType: HASH
+            - AttributeName: totalPoints
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-NationalLeaderboard
+          KeySchema:
+            - AttributeName: leaderboardPartition
+              KeyType: HASH
+            - AttributeName: totalPoints
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
-  UserNotificationsTable:
+  DumpPins:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub clean-up-app-notifications-${Environment}
-      BillingMode: PAY_PER_REQUEST
-
+      TableName: DumpPins
       AttributeDefinitions:
-        - AttributeName: PK
+        - AttributeName: pinId
           AttributeType: S
-        - AttributeName: SK
+        - AttributeName: geohash
           AttributeType: S
-
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: city
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+        - AttributeName: reportedBy
+          AttributeType: S
       KeySchema:
-        - AttributeName: PK
+        - AttributeName: pinId
           KeyType: HASH
-        - AttributeName: SK
-          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI-Geohash
+          KeySchema:
+            - AttributeName: geohash
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-City-Status
+          KeySchema:
+            - AttributeName: city
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-State-Status
+          KeySchema:
+            - AttributeName: state
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-ReportedBy
+          KeySchema:
+            - AttributeName: reportedBy
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true
-
-  getFruits:
-    Type: AWS::Serverless::Function
+  Events:
+    Type: AWS::DynamoDB::Table
     Properties:
-      Handler: get-fruits.getFruitsHandler
-      CodeUri: src/handlers/
-      Runtime: nodejs22.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
-      Description: A simple example includes a HTTP get method to get all fruits from a DynamoDB table.
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /fruits
-            Method: GET
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Sourcemap: true
-        EntryPoints:
-          - get-fruits.ts
+      TableName: Events
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: pinId
+          AttributeType: S
+        - AttributeName: scheduledAt
+          AttributeType: S
+        - AttributeName: city
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+        - AttributeName: organisedBy
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: GSI-Pin-Events
+          KeySchema:
+            - AttributeName: pinId
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-City-Events
+          KeySchema:
+            - AttributeName: city
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-State-Events
+          KeySchema:
+            - AttributeName: state
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+        - IndexName: GSI-OrganizerEvents
+          KeySchema:
+            - AttributeName: organisedBy
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  EventParticipants:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EventParticipants
+      AttributeDefinitions:
+        - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: registeredAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: eventId
+          KeyType: HASH
+        - AttributeName: userId
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: GSI-UserEvents
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: registeredAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  PointTransactions:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PointTransactions
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: txnId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: txnId
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  Badges:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Badges
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: badgeId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: badgeId
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
 
   getTrashDumps:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-trash-dumps.getTrashDumpsHandler
-      CodeUri: src/handlers/
+      CodeUri: src/handlers/trash-dump-pins
       Runtime: nodejs22.x
       Architectures:
         - x86_64
@@ -139,3 +319,63 @@ Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/"
+
+  UsersTableName:
+    Value: !Ref Users
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-UsersTable"
+
+  UsersTableArn:
+    Value: !GetAtt Users.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-UsersTableArn"
+
+  DumpPinsTableName:
+    Value: !Ref DumpPins
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-DumpPinsTable"
+
+  DumpPinsTableArn:
+    Value: !GetAtt DumpPins.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-DumpPinsTableArn"
+
+  EventsTableName:
+    Value: !Ref Events
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-EventsTable"
+
+  EventsTableArn:
+    Value: !GetAtt Events.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-EventsTableArn"
+
+  EventParticipantsTableName:
+    Value: !Ref EventParticipants
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-EventParticipantsTable"
+
+  EventParticipantsTableArn:
+    Value: !GetAtt EventParticipants.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-EventParticipantsTableArn"
+
+  PointTransactionsTableName:
+    Value: !Ref PointTransactions
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-PointTransactionsTable"
+
+  PointTransactionsTableArn:
+    Value: !GetAtt PointTransactions.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-PointTransactionsTableArn"
+
+  BadgesTableName:
+    Value: !Ref Badges
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-BadgesTable"
+
+  BadgesTableArn:
+    Value: !GetAtt Badges.Arn
+    Export:
+      Name: !Sub "${Environment}-SwachhMap-BadgesTableArn"
