@@ -366,6 +366,32 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - delete-trash-dump-pin.ts
+
+  updateTrashDumpPinStatus:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update-trash-dump-pin-status.updateTrashDumpPinStatusHandler
+      CodeUri: src/handlers/trash-dump-pins
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Update trash dump pin status - OPEN, CLOSED, .
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /trash-dumps
+            Method: PATCH
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - update-trash-dump-pin-status.ts
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
