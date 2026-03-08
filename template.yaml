@@ -340,6 +340,32 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - create-trash-dump-pin.ts
+
+  deleteTrashDumpPin:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: delete-trash-dump-pin.deleteTrashDumpPinHandler
+      CodeUri: src/handlers/trash-dump-pins
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Delete trash dump pin handler.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /trash-dumps
+            Method: DELETE
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - delete-trash-dump-pin.ts
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
