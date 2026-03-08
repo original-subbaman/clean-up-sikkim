@@ -1,0 +1,7 @@
+const PIN_STATUS = {
+	OPEN: "OPEN",
+	CLOSED: "CLOSED",
+	IN_PROGRESS: "IN_PROGRESS",
+};
+
+export { PIN_STATUS };

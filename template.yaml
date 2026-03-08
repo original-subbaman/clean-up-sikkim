@@ -299,7 +299,7 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 100
-      Description: A simple example includes a HTTP get method to get all trash dumps from a DynamoDB table.
+      Description: Get all trash dump pins for a given lat and lng.
       Events:
         Api:
           Type: Api
@@ -315,6 +315,31 @@ Resources:
         EntryPoints:
           - get-trash-dumps.ts
 
+  createTrashDumpPin:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: create-trash-dump-pin.createTrashDumpPinHandler
+      CodeUri: src/handlers/trash-dump-pins
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Create a new trash dump pin with given details.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /trash-dumps
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - create-trash-dump-pin.ts
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
