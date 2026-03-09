@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
+import { PIN_STATUS } from "../../utils/constants";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
@@ -9,7 +10,7 @@ const client = new DynamoDBClient({
 
 const updatePinSchema = z.object({
   pinId: z.string(),
-  status: z.string(),
+  status: z.enum([PIN_STATUS.OPEN, PIN_STATUS.CLOSED, PIN_STATUS.IN_PROGRESS]),
 });
 
 // TODO: Add authentication and associate reportedBy with user info from auth token instead of accepting it in request body. This will prevent impersonation and ensure data integrity.
