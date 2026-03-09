@@ -392,6 +392,33 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - update-trash-dump-pin-status.ts
+
+  createUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: create-user.createUserHandler
+      CodeUri: src/handlers/user
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Create a new user in the Users table.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - create-user.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
