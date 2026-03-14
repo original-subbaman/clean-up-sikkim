@@ -497,6 +497,32 @@ Resources:
         EntryPoints:
           - sign-up-to-event.ts
 
+  getUserEvents:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-user-events.getUserEvents
+      CodeUri: src/handlers/events
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Get all events for a user from EventParticipants table.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /events/user/{userId}
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-user-events.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
