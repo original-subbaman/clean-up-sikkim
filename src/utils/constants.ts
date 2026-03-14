@@ -12,6 +12,12 @@ const EVENT_STATUS = {
   COMPLETED: "COMPLETED",
 };
 
+const USER_EVENT_STATUS = {
+  REGISTERED: "REGISTERED",
+  ATTENDED: "ATTENDED",
+  NO_SHOW: "NO_SHOW",
+};
+
 const RANGE_CONFIG = {
   "1km": {
     geohashLength: 6,
@@ -32,4 +38,10 @@ const RANGE_CONFIG = {
 
 type RangeOption = keyof typeof RANGE_CONFIG;
 
-export { PIN_STATUS, EVENT_STATUS, RANGE_CONFIG, RangeOption };
+export {
+  PIN_STATUS,
+  EVENT_STATUS,
+  RANGE_CONFIG,
+  USER_EVENT_STATUS,
+  RangeOption,
+};

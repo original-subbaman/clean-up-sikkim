@@ -471,6 +471,32 @@ Resources:
         EntryPoints:
           - get-events-by-geohash.ts
 
+  signUpToEvent:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: sign-up-to-event.signUpToEvent
+      CodeUri: src/handlers/events
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: User sign up to event handler.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /events/signup
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - sign-up-to-event.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
