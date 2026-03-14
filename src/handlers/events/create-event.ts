@@ -22,7 +22,6 @@ const eventSchema = z.object({
   maxParticipants: z.number().min(1).optional(),
   pointsAwarded: z.number().min(0).optional(),
   photoUrl: z.string().optional(),
-  createdAt: z.string(), // ISO date string
 });
 
 export const createEventHandler = async (
@@ -93,6 +92,8 @@ export const createEventHandler = async (
         Item: {
           ...eventData,
           eventId: eventId,
+          geohash4: eventData.geohash.substring(0, 4),
+          geohash5: eventData.geohash.substring(0, 5),
           status: EVENT_STATUS.ACTIVE,
           createdAt: new Date().toISOString(),
         },
