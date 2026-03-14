@@ -445,6 +445,32 @@ Resources:
         EntryPoints:
           - create-event.ts
 
+  getEventsByGeohash:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-events-by-geohash.getEventsByGeohash
+      CodeUri: src/handlers/events
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Get events by geohash and its neighbors.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /events
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-events-by-geohash.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
