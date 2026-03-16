@@ -1,0 +1,14 @@
+{
+  "pathParameters": {
+    "userId": "1a2b3c4d-5678-90ab-cdef-1234567890ab",
+    "eventId": "0dd5f8f5-d55d-4bef-a662-6065863dc9f1"
+  },
+  "httpMethod": "PUT",
+  "headers": {},
+  "queryStringParameters": null,
+  "body": {
+    "status": "ATTENDED",
+    "attendedAt": "2026-03-16T10:00:00Z"
+  },
+  "isBase64Encoded": false
+}
