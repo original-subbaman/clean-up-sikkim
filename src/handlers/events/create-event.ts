@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { v4 as uuidv4 } from "uuid";
-import { z } from "zod";
+import { eventSchema } from "../../models/eventSchema";
 import { EVENT_STATUS } from "../../utils/constants";
 import { parseAndValidateEventBody } from "../../utils/helper";
 
@@ -11,19 +11,6 @@ const client = new DynamoDBClient({
 });
 
 // TODO: Remove organizedBy from schema and request body when integrating Cognito.
-const eventSchema = z.object({
-  pinId: z.string(),
-  name: z.string().min(2).max(100),
-  description: z.string().max(500).optional(),
-  scheduledAt: z.string(), // ISO date string
-  organizedBy: z.string(),
-  geohash: z.string().min(1).max(12),
-  participantCount: z.number().min(0).optional(),
-  maxParticipants: z.number().min(1).optional(),
-  pointsAwarded: z.number().min(0).optional(),
-  photoUrl: z.string().optional(),
-});
-
 export const createEventHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
