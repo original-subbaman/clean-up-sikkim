@@ -1,22 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import ngeohash from "ngeohash";
-import { z } from "zod";
-import { PIN_STATUS } from "../../utils/constants";
 import { v4 as uuidv4 } from "uuid";
+import { dumpPinSchema } from "../../models/dumpPinSchema";
+import { PIN_STATUS } from "../../utils/constants";
 
 const client = new DynamoDBClient({
   region: "ap-south-1",
-});
-
-const dumpPinSchema = z.object({
-  city: z.string().min(2).max(50),
-  lat: z.number().min(-90).max(90),
-  lng: z.number().min(-180).max(180),
-  reportedBy: z.string(),
-  state: z.string().min(2).max(50),
 });
 
 // TODO: Add authentication and associate reportedBy with user info from auth token instead of accepting it in request body. This will prevent impersonation and ensure data integrity.
