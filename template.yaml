@@ -547,6 +547,30 @@ Resources:
         EntryPoints:
           - update-user-event.ts
 
+  updateEvent:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update-event.updateEvent
+      Runtime: nodejs18.x
+      CodeUri: src/handlers/events
+      Description: Updates an event's details
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        UpdateEventApi:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}
+            Method: PUT
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - update-event.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"

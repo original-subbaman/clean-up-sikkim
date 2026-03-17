@@ -1,0 +1,13 @@
+{
+  "pathParameters": {
+    "eventId": "bd2860a4-ba05-415c-b883-8836bb8fa175"
+  },
+  "body": {
+    "description": "Community cleanup event at Enchey Gompa.",
+    "scheduledAt": "2026-03-20T10:00:00Z",
+    "maxParticipants": 50,
+    "pointsAwarded": 20,
+    "photoUrl": "https://example.com/photo.jpg",
+    "status": "ACTIVE"
+  }
+}
