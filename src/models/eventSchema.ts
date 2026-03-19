@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EVENT_STATUS } from "../utils/constants";
 
 export const eventSchema = z.object({
   pinId: z.string(),
@@ -11,4 +12,7 @@ export const eventSchema = z.object({
   maxParticipants: z.number().min(1).optional(),
   pointsAwarded: z.number().min(0).optional(),
   photoUrl: z.string().optional(),
+  status: z.enum(EVENT_STATUS).optional(),
 });
+
+export type Event = z.infer<typeof eventSchema>;
