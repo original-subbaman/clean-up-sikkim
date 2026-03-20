@@ -471,6 +471,32 @@ Resources:
         EntryPoints:
           - get-events-by-geohash.ts
 
+  getEventById:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-event-by-id.getEventById
+      CodeUri: src/handlers/events
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Get event by ID.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-event-by-id.ts
+
   signUpToEvent:
     Type: AWS::Serverless::Function
     Properties:
