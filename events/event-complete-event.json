@@ -1,0 +1,10 @@
+{
+  "pathParameters": {
+    "eventId": "0dd5f8f5-d55d-4bef-a662-6065863dc9f1"
+  },
+  "httpMethod": "POST",
+  "headers": {},
+  "queryStringParameters": null,
+  "body": null,
+  "isBase64Encoded": false
+}

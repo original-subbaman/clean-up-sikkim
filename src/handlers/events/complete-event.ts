@@ -34,7 +34,7 @@ export async function completeEvent(
   try {
     const eventId = event.pathParameters?.eventId;
     // const organizerId = event.requestContext.authorizer?.claims?.sub;
-    const organizerId = event.pathParameters?.organizerId; // Placeholder for testing
+    const organizerId = "user_xyz789"; // Placeholder for testing
     if (!eventId || !organizerId) {
       return {
         statusCode: 400,
@@ -50,7 +50,7 @@ export async function completeEvent(
       };
     }
 
-    if (completedEvent.status !== EVENT_STATUS.IN_PROGRESS) {
+    if (completedEvent.status === EVENT_STATUS.COMPLETED) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: "Event is already completed" }),

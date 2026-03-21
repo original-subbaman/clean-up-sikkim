@@ -597,6 +597,30 @@ Resources:
         EntryPoints:
           - update-event.ts
 
+  completeEvent:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: complete-event.completeEvent
+      Runtime: nodejs18.x
+      CodeUri: src/handlers/events
+      Description: Complete an event - assign points to users, update event status, etc.
+      MemorySize: 128
+      Timeout: 10
+      Events:
+        completeEventApi:
+          Type: Api
+          Properties:
+            Path: /events/{eventId}/complete
+            Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - complete-event.ts
+
 Outputs:
   WebEndpoint:
     Description: "API Gateway endpoint URL for Prod stage"
