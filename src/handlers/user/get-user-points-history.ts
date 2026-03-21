@@ -1,0 +1,51 @@
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+
+const baseClient = new DynamoDBClient({
+  region: "ap-south-1",
+});
+
+const client = DynamoDBDocumentClient.from(baseClient);
+
+export async function getUserPointsHistory(
+  event: APIGatewayProxyEvent,
+): Promise<APIGatewayProxyResult> {
+  try {
+    const userId = event.pathParameters?.userId;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Missing userId parameter" }),
+      };
+    }
+
+    const pointHistory = await client.send(
+      new QueryCommand({
+        TableName: "PointTransactions",
+        KeyConditionExpression: "userId = :userId",
+        ExpressionAttributeValues: {
+          ":userId": userId,
+        },
+      }),
+    );
+    console.log(
+      "🚀 ~ getUserPointsHistory ~ pointHistory:",
+      pointHistory.Items,
+    );
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        data: pointHistory.Items || [],
+      }),
+    };
+  } catch (error) {
+    console.log("🚀 ~ getUserPointsHistory ~ error:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Internal Server Error" }),
+    };
+  }
+}

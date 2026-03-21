@@ -549,6 +549,32 @@ Resources:
         EntryPoints:
           - get-user-events.ts
 
+  getUserPointsHistory:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-user-points-history.getUserPointsHistory
+      CodeUri: src/handlers/user
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Get all points history for a user from PointTransactions table.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users/{userId}/points-history
+            Method: GET
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-user-points-history.ts
+
   updateUserEventFunction:
     Type: AWS::Serverless::Function
     Properties:
