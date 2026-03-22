@@ -32,14 +32,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
-        - AttributeName: city
-          AttributeType: S
-        - AttributeName: state
-          AttributeType: S
-        - AttributeName: totalPoints
-          AttributeType: N
-        - AttributeName: leaderboardPartition
-          AttributeType: S
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
@@ -66,17 +58,6 @@ Resources:
           ProvisionedThroughput:
             ReadCapacityUnits: 5
             WriteCapacityUnits: 5
-        - IndexName: GSI-NationalLeaderboard
-          KeySchema:
-            - AttributeName: leaderboardPartition
-              KeyType: HASH
-            - AttributeName: totalPoints
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
@@ -88,21 +69,10 @@ Resources:
       AttributeDefinitions:
         - AttributeName: pinId
           AttributeType: S
-        - AttributeName: geohash
-          AttributeType: S
-        - AttributeName: createdAt
-          AttributeType: S
-        - AttributeName: city
-          AttributeType: S
-        - AttributeName: status
-          AttributeType: S
-        - AttributeName: state
-          AttributeType: S
-        - AttributeName: reportedBy
-          AttributeType: S
       KeySchema:
         - AttributeName: pinId
           KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: GSI-Geohash
           KeySchema:
@@ -112,9 +82,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
         - IndexName: GSI-City-Status
           KeySchema:
             - AttributeName: city
@@ -123,9 +90,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
         - IndexName: GSI-State-Status
           KeySchema:
             - AttributeName: state
@@ -134,9 +98,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
         - IndexName: GSI-ReportedBy
           KeySchema:
             - AttributeName: reportedBy
@@ -145,12 +106,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
 
   Events:
     Type: AWS::DynamoDB::Table
@@ -159,20 +114,35 @@ Resources:
       AttributeDefinitions:
         - AttributeName: eventId
           AttributeType: S
-        - AttributeName: pinId
-          AttributeType: S
-        - AttributeName: scheduledAt
-          AttributeType: S
-        - AttributeName: city
-          AttributeType: S
-        - AttributeName: state
-          AttributeType: S
-        - AttributeName: organisedBy
-          AttributeType: S
       KeySchema:
         - AttributeName: eventId
           KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
+        - IndexName: GSI-Geohash-Time
+          KeySchema:
+            - AttributeName: geohash
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI-Geohash4-Time
+          KeySchema:
+            - AttributeName: geohash4
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI-Geohash5-Time
+          KeySchema:
+            - AttributeName: geohash5
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
         - IndexName: GSI-Pin-Events
           KeySchema:
             - AttributeName: pinId
@@ -181,45 +151,6 @@ Resources:
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-        - IndexName: GSI-City-Events
-          KeySchema:
-            - AttributeName: city
-              KeyType: HASH
-            - AttributeName: scheduledAt
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-        - IndexName: GSI-State-Events
-          KeySchema:
-            - AttributeName: state
-              KeyType: HASH
-            - AttributeName: scheduledAt
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-        - IndexName: GSI-OrganizerEvents
-          KeySchema:
-            - AttributeName: organisedBy
-              KeyType: HASH
-            - AttributeName: scheduledAt
-              KeyType: RANGE
-          Projection:
-            ProjectionType: ALL
-          ProvisionedThroughput:
-            ReadCapacityUnits: 5
-            WriteCapacityUnits: 5
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
 
   EventParticipants:
     Type: AWS::DynamoDB::Table
@@ -230,15 +161,13 @@ Resources:
           AttributeType: S
         - AttributeName: userId
           AttributeType: S
-        - AttributeName: registeredAt
-          AttributeType: S
       KeySchema:
         - AttributeName: eventId
           KeyType: HASH
         - AttributeName: userId
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: GSI-UserEvents
+        - IndexName: GSI-User-Events
           KeySchema:
             - AttributeName: userId
               KeyType: HASH
@@ -271,24 +200,6 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
-  Badges:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: Badges
-      AttributeDefinitions:
-        - AttributeName: userId
-          AttributeType: S
-        - AttributeName: badgeId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-        - AttributeName: badgeId
-          KeyType: RANGE
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
-
   getTrashDumps:
     Type: AWS::Serverless::Function
     Properties:
@@ -306,6 +217,9 @@ Resources:
           Properties:
             Path: /trash-dumps
             Method: GET
+      Environment:
+        Variables:
+          DUMP_PINS_TABLE: !Ref DumpPins
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -332,6 +246,9 @@ Resources:
           Properties:
             Path: /trash-dumps
             Method: POST
+      Environment:
+        Variables:
+          DUMP_PINS_TABLE: !Ref DumpPins
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -358,6 +275,9 @@ Resources:
           Properties:
             Path: /trash-dumps
             Method: DELETE
+      Environment:
+        Variables:
+          DUMP_PINS_TABLE: !Ref DumpPins
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -384,6 +304,9 @@ Resources:
           Properties:
             Path: /trash-dumps
             Method: PATCH
+      Environment:
+        Variables:
+          DUMP_PINS_TABLE: !Ref DumpPins
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -410,6 +333,10 @@ Resources:
           Properties:
             Path: /users
             Method: POST
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref Users
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -436,6 +363,9 @@ Resources:
           Properties:
             Path: /events
             Method: POST
+      Environment:
+        Variables:
+          EVENTS_TABLE: !Ref Events
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -462,6 +392,9 @@ Resources:
           Properties:
             Path: /events
             Method: GET
+      Environment:
+        Variables:
+          EVENTS_TABLE: !Ref Events
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -488,6 +421,9 @@ Resources:
           Properties:
             Path: /events/{eventId}
             Method: GET
+      Environment:
+        Variables:
+          EVENTS_TABLE: !Ref Events
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -514,6 +450,9 @@ Resources:
           Properties:
             Path: /events/signup
             Method: POST
+      Environment:
+        Variables:
+          EVENTS_PARTICIPANTS_TABLE: !Ref EventParticipants
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -540,6 +479,9 @@ Resources:
           Properties:
             Path: /events/user/{userId}
             Method: GET
+      Environment:
+        Variables:
+          EVENTS_PARTICIPANTS_TABLE: !Ref EventParticipants
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -566,6 +508,9 @@ Resources:
           Properties:
             Path: /users/{userId}/points-history
             Method: GET
+      Environment:
+        Variables:
+          POINT_TRANSACTIONS_TABLE: !Ref PointTransactions
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -575,7 +520,7 @@ Resources:
         EntryPoints:
           - get-user-points-history.ts
 
-  updateUserEventFunction:
+  updateUserEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-user-event.updateUserEvent
@@ -590,6 +535,9 @@ Resources:
           Properties:
             Path: /events/{eventId}/users/{userId}
             Method: PUT
+      Environment:
+        Variables:
+          EVENTS_PARTICIPANTS_TABLE: !Ref EventParticipants
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -614,6 +562,9 @@ Resources:
           Properties:
             Path: /events/{eventId}
             Method: PUT
+      Environment:
+        Variables:
+          EVENTS_TABLE: !Ref Events
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -638,6 +589,13 @@ Resources:
           Properties:
             Path: /events/{eventId}/complete
             Method: POST
+      Environment:
+        Variables:
+          EVENTS_TABLE: !Ref Events
+          EVENTS_PARTICIPANTS_TABLE: !Ref EventParticipants
+          USERS_TABLE: !Ref Users
+          POINT_TRANSACTIONS_TABLE: !Ref PointTransactions
+          DUMP_PINS_TABLE: !Ref DumpPins
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -655,59 +613,59 @@ Outputs:
   UsersTableName:
     Value: !Ref Users
     Export:
-      Name: !Sub "${Environment}-SwachhMap-UsersTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-UsersTable"
 
   UsersTableArn:
     Value: !GetAtt Users.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-UsersTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-UsersTableArn"
 
   DumpPinsTableName:
     Value: !Ref DumpPins
     Export:
-      Name: !Sub "${Environment}-SwachhMap-DumpPinsTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-DumpPinsTable"
 
   DumpPinsTableArn:
     Value: !GetAtt DumpPins.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-DumpPinsTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-DumpPinsTableArn"
 
   EventsTableName:
     Value: !Ref Events
     Export:
-      Name: !Sub "${Environment}-SwachhMap-EventsTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-EventsTable"
 
   EventsTableArn:
     Value: !GetAtt Events.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-EventsTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-EventsTableArn"
 
   EventParticipantsTableName:
     Value: !Ref EventParticipants
     Export:
-      Name: !Sub "${Environment}-SwachhMap-EventParticipantsTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-EventParticipantsTable"
 
   EventParticipantsTableArn:
     Value: !GetAtt EventParticipants.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-EventParticipantsTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-EventParticipantsTableArn"
 
   PointTransactionsTableName:
     Value: !Ref PointTransactions
     Export:
-      Name: !Sub "${Environment}-SwachhMap-PointTransactionsTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-PointTransactionsTable"
 
   PointTransactionsTableArn:
     Value: !GetAtt PointTransactions.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-PointTransactionsTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-PointTransactionsTableArn"
 
   BadgesTableName:
     Value: !Ref Badges
     Export:
-      Name: !Sub "${Environment}-SwachhMap-BadgesTable"
+      Name: !Sub "${Environment}-CleanUpSikkim-BadgesTable"
 
   BadgesTableArn:
     Value: !GetAtt Badges.Arn
     Export:
-      Name: !Sub "${Environment}-SwachhMap-BadgesTableArn"
+      Name: !Sub "${Environment}-CleanUpSikkim-BadgesTableArn"
