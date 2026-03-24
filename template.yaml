@@ -25,6 +25,48 @@ Parameters:
     Description: "The deployment environment."
 
 Resources:
+  CleanUpSikkimUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${Environment}-CleanUpSikkim-UserPool"
+      UsernameAttributes:
+        - phone_number
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      Schema:
+        - Name: phone_number
+          Required: true
+          Mutable: true
+        - Name: name
+          Required: true
+          Mutable: true
+        - Name: nickname
+          Required: false
+          Mutable: true
+      LambdaConfig:
+        DefineAuthChallenge: !GetAtt DefineAuthChallengeFunction.Arn # orchestrates the flow
+        CreateAuthChallenge: !GetAtt CreateAuthChallengeFunction.Arn # generates & sends the OTP via SNS
+        VerifyAuthChallengeResponse: !GetAtt VerifyAuthChallengeFunction.Arn # validates what user entered
+        PostConfirmation: !GetAtt PostConfirmationFunction.Arn # post confirmation actions
+
+  CleanUpSikkimUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "${Environment}-CleanUpSikkim-UserPoolClient"
+      UserPoolId: !Ref CleanUpSikkimUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      AccessTokenValidity: 1 # hours
+      IdTokenValidity: 1 # hours
+      RefreshTokenValidity: 30
+
   Users:
     Type: AWS::DynamoDB::Table
     Properties:
