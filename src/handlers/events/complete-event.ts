@@ -32,6 +32,10 @@ export async function completeEvent(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsTable = process.env.EVENTS_TABLE;
+    const pointTransactionsTable = process.env.POINT_TRANSACTIONS_TABLE;
+    const usersTable = process.env.USERS_TABLE;
+    const dumpPinsTable = process.env.DUMP_PINS_TABLE;
     const eventId = event.pathParameters?.eventId;
     // const organizerId = event.requestContext.authorizer?.claims?.sub;
     const organizerId = "user_xyz789"; // Placeholder for testing
@@ -96,7 +100,7 @@ export async function completeEvent(
         // 1. Append to the ledger
         {
           Put: {
-            TableName: "PointTransactions",
+            TableName: pointTransactionsTable,
             Item: {
               userId,
               txnId: `${date}#${crypto.randomUUID()}`,
@@ -111,7 +115,7 @@ export async function completeEvent(
         // 2. Increment the running total on the user
         {
           Update: {
-            TableName: "Users",
+            TableName: usersTable,
             Key: { userId },
             UpdateExpression: "ADD totalPoints :pts, cleanupCount :one",
             ExpressionAttributeValues: {
@@ -124,7 +128,7 @@ export async function completeEvent(
     // update event status to COMPLETED
     transactItems.push({
       Update: {
-        TableName: "Events",
+        TableName: eventsTable,
         Key: { eventId },
         UpdateExpression:
           "SET #status = :completed, completedAt = :completedAt",
@@ -141,7 +145,7 @@ export async function completeEvent(
     // update dump pins status
     transactItems.push({
       Update: {
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         Key: { pinId: completedEvent.pinId },
         UpdateExpression: "SET #status = :closed",
         ExpressionAttributeNames: {
@@ -180,9 +184,10 @@ async function getEvent(
   client: DynamoDBDocumentClient,
   eventId: string,
 ): Promise<Event | null> {
+  const eventsTable = process.env.EVENTS_TABLE;
   const result = await client.send(
     new GetCommand({
-      TableName: "Events",
+      TableName: eventsTable,
       Key: { eventId },
     }),
   );
@@ -200,7 +205,7 @@ async function fetchUsersWhoAttendedEvent(
   do {
     const result: QueryCommandOutput = await client.send(
       new QueryCommand({
-        TableName: "EventParticipants",
+        TableName: process.env.EVENT_PARTICIPANTS_TABLE,
         KeyConditionExpression: "eventId = :eventId",
         FilterExpression: "#status = :attendedStatus",
         ExpressionAttributeValues: {

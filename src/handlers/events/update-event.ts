@@ -24,6 +24,7 @@ export async function updateEvent(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsTable = process.env.EVENTS_TABLE;
     const eventId = event.pathParameters?.eventId;
     if (!eventId) {
       return {
@@ -76,7 +77,7 @@ export async function updateEvent(
 
     await client.send(
       new UpdateCommand({
-        TableName: "Events",
+        TableName: eventsTable,
         Key: { eventId },
         UpdateExpression: updateExpression,
         ExpressionAttributeNames: expressionAttributeNames,

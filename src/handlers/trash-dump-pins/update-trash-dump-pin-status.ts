@@ -19,6 +19,7 @@ export const updateTrashDumpPinStatusHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   let body;
+  const dumpPinsTable = process.env.DUMP_PINS_TABLE;
   try {
     body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const parseResult = updatePinSchema.safeParse(body);
@@ -37,7 +38,7 @@ export const updateTrashDumpPinStatusHandler = async (
 
     const result = await client.send(
       new UpdateCommand({
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         Key: { pinId: pinId },
         UpdateExpression: "SET #status = :status",
         ExpressionAttributeNames: { "#status": "status" },
@@ -61,7 +62,7 @@ export const updateTrashDumpPinStatusHandler = async (
       }),
     };
   } catch (error) {
-    console.log("🚀 ~ updateTrashDumpPinHandler ~ error:", error);
+    console.log("🚀 ~ updateTrashDumpPinStatusHandler ~ error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return {
       statusCode: 500,

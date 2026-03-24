@@ -15,6 +15,8 @@ export const createEventHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
+    const eventsTable = process.env.EVENTS_TABLE;
+    const dumpPinsTable = process.env.DUMP_PINS_TABLE;
     const parseResult = parseAndValidateEventBody(event, eventSchema);
 
     if (!parseResult.success) {
@@ -29,7 +31,7 @@ export const createEventHandler = async (
 
     const isValidPinId = await client.send(
       new QueryCommand({
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         KeyConditionExpression: "pinId = :pinId",
         ExpressionAttributeValues: {
           ":pinId": pinId,
@@ -46,7 +48,7 @@ export const createEventHandler = async (
 
     const previousActiveEvent = await client.send(
       new QueryCommand({
-        TableName: "Events",
+        TableName: eventsTable,
         IndexName: "GSI-Pin-Events",
         KeyConditionExpression: "pinId = :pinId ",
         FilterExpression: "#status IN (:active, :inProgress, :upcoming)",
@@ -75,7 +77,7 @@ export const createEventHandler = async (
 
     await client.send(
       new PutCommand({
-        TableName: "Events",
+        TableName: eventsTable,
         Item: {
           ...eventData,
           eventId: eventId,

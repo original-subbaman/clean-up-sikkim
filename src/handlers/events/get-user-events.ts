@@ -11,6 +11,7 @@ export async function getUserEvents(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsParticipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
     const userId = event.pathParameters?.userId;
 
     if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
@@ -22,7 +23,7 @@ export async function getUserEvents(
 
     const userEventsResult = await client.send(
       new QueryCommand({
-        TableName: "EventParticipants",
+        TableName: eventsParticipantsTable,
         IndexName: "GSI-User-Events",
         KeyConditionExpression: "userId = :userId",
         ExpressionAttributeValues: {

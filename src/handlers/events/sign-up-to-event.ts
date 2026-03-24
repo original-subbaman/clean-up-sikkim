@@ -19,6 +19,7 @@ export async function signUpToEvent(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsParticipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
     const parseResult = parseAndValidateEventBody(
       event,
       eventRegistrationSchema,
@@ -57,7 +58,7 @@ export async function signUpToEvent(
     // Validate if user is already registered for the event
     const existingRegistration = await client.send(
       new GetCommand({
-        TableName: "EventParticipants",
+        TableName: eventsParticipantsTable,
         Key: { eventId, userId },
       }),
     );
@@ -73,7 +74,7 @@ export async function signUpToEvent(
 
     await client.send(
       new PutCommand({
-        TableName: "EventParticipants",
+        TableName: eventsParticipantsTable,
         Item: {
           ...parseResult.data,
           status: USER_EVENT_STATUS.REGISTERED,

@@ -16,6 +16,7 @@ export const deleteTrashDumpPinHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   let body;
+  const dumpPinsTable = process.env.DUMP_PINS_TABLE;
   try {
     body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const parseResult = deletePinSchema.safeParse(body);
@@ -32,7 +33,7 @@ export const deleteTrashDumpPinHandler = async (
 
     const deletedPin = await client.send(
       new DeleteCommand({
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         Key: {
           pinId: parseResult.data.pinId,
         },
@@ -56,7 +57,7 @@ export const deleteTrashDumpPinHandler = async (
       }),
     };
   } catch (error) {
-    console.log("🚀 ~ createTrashDumpPinHandler ~ error:", error);
+    console.log("🚀 ~ deleteTrashDumpPinHandler ~ error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return {
       statusCode: 500,

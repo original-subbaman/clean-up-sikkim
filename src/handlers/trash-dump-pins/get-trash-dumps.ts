@@ -10,6 +10,7 @@ export const getTrashDumpsHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
+    const dumpPinsTable = process.env.DUMP_PINS_TABLE;
     const queryStrParams = event.queryStringParameters || {};
     const lat = queryStrParams?.lat ? parseFloat(queryStrParams.lat) : 27.3314;
     const lng = queryStrParams?.lng ? parseFloat(queryStrParams.lng) : 88.6138;
@@ -30,7 +31,7 @@ export const getTrashDumpsHandler = async (
       geohashes.map((g) =>
         client.send(
           new QueryCommand({
-            TableName: "DumpPins",
+            TableName: dumpPinsTable,
             IndexName: "GSI-Geohash",
             KeyConditionExpression: "geohash = :g",
             ExpressionAttributeValues: {

@@ -15,6 +15,7 @@ export const createTrashDumpPinHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   let body;
+  const dumpPinsTable = process.env.DUMP_PINS_TABLE;
   try {
     body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const parseResult = dumpPinSchema.safeParse(body);
@@ -41,7 +42,7 @@ export const createTrashDumpPinHandler = async (
     ).toISOString();
     const queryResult = await client.send(
       new QueryCommand({
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         IndexName: "GSI-Geohash",
         KeyConditionExpression:
           "geohash = :geohash AND createdAt >= :sevenDaysAgo",
@@ -80,7 +81,7 @@ export const createTrashDumpPinHandler = async (
 
     await client.send(
       new PutCommand({
-        TableName: "DumpPins",
+        TableName: dumpPinsTable,
         Item: newPin,
       }),
     );

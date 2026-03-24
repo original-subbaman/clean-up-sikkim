@@ -13,6 +13,7 @@ export async function updateUserEvent(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsParticipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
     const eventId = event.pathParameters?.eventId;
     const userId = event.pathParameters?.userId;
 
@@ -65,7 +66,7 @@ export async function updateUserEvent(
 
     await client.send(
       new UpdateCommand({
-        TableName: "EventParticipants",
+        TableName: eventsParticipantsTable,
         Key: { eventId, userId },
         UpdateExpression: "SET " + updateFields.join(", "),
         ExpressionAttributeNames: Object.keys(expressionAttributeNames).length

@@ -16,6 +16,8 @@ export async function getEventById(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsTable = process.env.EVENTS_TABLE;
+    const eventsPartcipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
     const eventId = event.pathParameters?.eventId;
     if (!eventId) {
       return {
@@ -27,13 +29,13 @@ export async function getEventById(
     const [eventDetails, participantsResult] = await Promise.all([
       client.send(
         new GetCommand({
-          TableName: "Events",
+          TableName: eventsTable,
           Key: { eventId },
         }),
       ),
       client.send(
         new QueryCommand({
-          TableName: "EventParticipants",
+          TableName: eventsPartcipantsTable,
           KeyConditionExpression: "eventId = :eventId",
           ExpressionAttributeValues: { ":eventId": eventId },
         }),

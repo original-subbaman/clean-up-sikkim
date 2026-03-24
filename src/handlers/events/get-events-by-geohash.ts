@@ -13,6 +13,7 @@ export async function getEventsByGeohash(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const eventsTable = process.env.EVENTS_TABLE;
     const latStr = event.queryStringParameters?.lat;
     const lngStr = event.queryStringParameters?.lng;
 
@@ -49,7 +50,7 @@ export async function getEventsByGeohash(
       geohashesToQuery.map(async (g) => {
         const result = await client.send(
           new QueryCommand({
-            TableName: "Events",
+            TableName: eventsTable,
             IndexName: indexName,
             KeyConditionExpression: `${attribute} = :geohash AND scheduledAt >= :currentTime`,
             FilterExpression: "#status IN (:activeStatus, :upcomingStatus)",

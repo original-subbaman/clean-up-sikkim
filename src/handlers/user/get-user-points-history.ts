@@ -12,6 +12,7 @@ export async function getUserPointsHistory(
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> {
   try {
+    const tableName = process.env.POINT_TRANSACTIONS_TABLE;
     const userId = event.pathParameters?.userId;
 
     if (!userId) {
@@ -23,16 +24,12 @@ export async function getUserPointsHistory(
 
     const pointHistory = await client.send(
       new QueryCommand({
-        TableName: "PointTransactions",
+        TableName: tableName,
         KeyConditionExpression: "userId = :userId",
         ExpressionAttributeValues: {
           ":userId": userId,
         },
       }),
-    );
-    console.log(
-      "🚀 ~ getUserPointsHistory ~ pointHistory:",
-      pointHistory.Items,
     );
 
     return {

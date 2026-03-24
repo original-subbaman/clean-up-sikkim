@@ -20,6 +20,7 @@ export const createUserHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
+    const tableName = process.env.USERS_TABLE || "Users";
     const parsedBody =
       typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const parseResult = createUserSchema.safeParse(parsedBody);
@@ -38,7 +39,7 @@ export const createUserHandler = async (
 
     // Check for duplicate user by cognitoUserId
     const getUserCommand = new GetItemCommand({
-      TableName: "Users",
+      TableName: tableName,
       Key: {
         userId: { S: result.cognitoUserId },
       },
@@ -53,7 +54,7 @@ export const createUserHandler = async (
     }
 
     const command = new PutItemCommand({
-      TableName: "Users",
+      TableName: tableName,
       Item: {
         userId: { S: result.cognitoUserId },
         city: { S: result.city },
