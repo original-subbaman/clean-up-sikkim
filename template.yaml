@@ -67,6 +67,35 @@ Resources:
       IdTokenValidity: 1 # hours
       RefreshTokenValidity: 30
 
+  DefineAuthChallengeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: define-auth-challenge.defineAuthChallenge
+      CodeUri: src/handlers/auth
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Define the custom auth challenge flow.
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - define-auth-challenge.ts
+
+  DefineAuthChallengeFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref DefineAuthChallengeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt CleanUpSikkimUserPool.Arn
+
+  # DynamoDB tables
   Users:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -242,7 +271,8 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
-  getTrashDumps:
+  # Lambda function definitions
+  GetTrashDumps:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-trash-dumps.getTrashDumpsHandler
@@ -271,7 +301,7 @@ Resources:
         EntryPoints:
           - get-trash-dumps.ts
 
-  createTrashDumpPin:
+  CreateTrashDumpPin:
     Type: AWS::Serverless::Function
     Properties:
       Handler: create-trash-dump-pin.createTrashDumpPinHandler
@@ -300,7 +330,7 @@ Resources:
         EntryPoints:
           - create-trash-dump-pin.ts
 
-  deleteTrashDumpPin:
+  DeleteTrashDumpPin:
     Type: AWS::Serverless::Function
     Properties:
       Handler: delete-trash-dump-pin.deleteTrashDumpPinHandler
@@ -329,7 +359,7 @@ Resources:
         EntryPoints:
           - delete-trash-dump-pin.ts
 
-  updateTrashDumpPinStatus:
+  UpdateTrashDumpPinStatus:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-trash-dump-pin-status.updateTrashDumpPinStatusHandler
@@ -358,7 +388,7 @@ Resources:
         EntryPoints:
           - update-trash-dump-pin-status.ts
 
-  createUser:
+  CreateUser:
     Type: AWS::Serverless::Function
     Properties:
       Handler: create-user.createUserHandler
@@ -388,7 +418,7 @@ Resources:
         EntryPoints:
           - create-user.ts
 
-  createEvent:
+  CreateEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: create-event.createEventHandler
@@ -417,7 +447,7 @@ Resources:
         EntryPoints:
           - create-event.ts
 
-  getEventsByGeohash:
+  GetEventsByGeohash:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-events-by-geohash.getEventsByGeohash
@@ -446,7 +476,7 @@ Resources:
         EntryPoints:
           - get-events-by-geohash.ts
 
-  getEventById:
+  GetEventById:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-event-by-id.getEventById
@@ -475,7 +505,7 @@ Resources:
         EntryPoints:
           - get-event-by-id.ts
 
-  signUpToEvent:
+  SignUpToEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: sign-up-to-event.signUpToEvent
@@ -504,7 +534,7 @@ Resources:
         EntryPoints:
           - sign-up-to-event.ts
 
-  getUserEvents:
+  GetUserEvents:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-user-events.getUserEvents
@@ -533,7 +563,7 @@ Resources:
         EntryPoints:
           - get-user-events.ts
 
-  getUserPointsHistory:
+  GetUserPointsHistory:
     Type: AWS::Serverless::Function
     Properties:
       Handler: get-user-points-history.getUserPointsHistory
@@ -562,7 +592,7 @@ Resources:
         EntryPoints:
           - get-user-points-history.ts
 
-  updateUserEvent:
+  UpdateUserEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-user-event.updateUserEvent
@@ -589,7 +619,7 @@ Resources:
         EntryPoints:
           - update-user-event.ts
 
-  updateEvent:
+  UpdateEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-event.updateEvent
@@ -616,7 +646,7 @@ Resources:
         EntryPoints:
           - update-event.ts
 
-  completeEvent:
+  CompleteEvent:
     Type: AWS::Serverless::Function
     Properties:
       Handler: complete-event.completeEvent
