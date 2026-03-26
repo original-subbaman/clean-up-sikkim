@@ -30,7 +30,9 @@ Resources:
     Properties:
       UserPoolName: !Sub "${Environment}-CleanUpSikkim-UserPool"
       UsernameAttributes:
-        - phone_number
+        - email # login with email
+      AutoVerifiedAttributes:
+        - email # Cognito sends verification email automatically
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -38,20 +40,17 @@ Resources:
           RequireNumbers: true
           RequireSymbols: false
       Schema:
-        - Name: phone_number
+        - Name: email
           Required: true
-          Mutable: true
+          Mutable: false
         - Name: name
           Required: true
           Mutable: true
-        - Name: nickname
-          Required: false
+        - Name: phone_number
+          Required: false # collect it but don't require it at signup
           Mutable: true
       LambdaConfig:
-        DefineAuthChallenge: !GetAtt DefineAuthChallengeFunction.Arn # orchestrates the flow
-        CreateAuthChallenge: !GetAtt CreateAuthChallengeFunction.Arn # generates & sends the OTP via SNS
-        VerifyAuthChallengeResponse: !GetAtt VerifyAuthChallengeFunction.Arn # validates what user entered
-        PostConfirmation: !GetAtt PostConfirmationFunction.Arn # post confirmation actions
+        PostConfirmation: !GetAtt PostConfirmationFunction.Arn
 
   CleanUpSikkimUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
@@ -60,38 +59,30 @@ Resources:
       UserPoolId: !Ref CleanUpSikkimUserPool
       GenerateSecret: false
       ExplicitAuthFlows:
-        - ALLOW_CUSTOM_AUTH
-        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_SRP_AUTH # secure password auth
         - ALLOW_REFRESH_TOKEN_AUTH
-      AccessTokenValidity: 1 # hours
-      IdTokenValidity: 1 # hours
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
       RefreshTokenValidity: 30
 
-  DefineAuthChallengeFunction:
+  PostConfirmationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: define-auth-challenge.defineAuthChallenge
-      CodeUri: src/handlers/auth
-      Runtime: nodejs22.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 10
-      Description: Define the custom auth challenge flow.
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: es2022
-        Sourcemap: true
-        EntryPoints:
-          - define-auth-challenge.ts
+      FunctionName: !Sub "${Environment}-PostConfirmation"
+      Handler: src/functions/auth/postConfirmation.handler
+      Runtime: nodejs20.x
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref Users
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref Users
 
-  DefineAuthChallengeFunctionPermission:
+  PostConfirmationFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref DefineAuthChallengeFunction
+      FunctionName: !GetAtt PostConfirmationFunction.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt CleanUpSikkimUserPool.Arn
 
@@ -103,6 +94,12 @@ Resources:
       AttributeDefinitions:
         - AttributeName: userId
           AttributeType: S
+        - AttributeName: city
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+        - AttributeName: totalPoints
+          AttributeType: N
       KeySchema:
         - AttributeName: userId
           KeyType: HASH
@@ -139,6 +136,18 @@ Resources:
       TableName: DumpPins
       AttributeDefinitions:
         - AttributeName: pinId
+          AttributeType: S
+        - AttributeName: geohash
+          AttributeType: S
+        - AttributeName: city
+          AttributeType: S
+        - AttributeName: state
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: reportedBy
+          AttributeType: S
+        - AttributeName: createdAt
           AttributeType: S
       KeySchema:
         - AttributeName: pinId
@@ -184,6 +193,16 @@ Resources:
       TableName: Events
       AttributeDefinitions:
         - AttributeName: eventId
+          AttributeType: S
+        - AttributeName: geohash
+          AttributeType: S
+        - AttributeName: scheduledAt
+          AttributeType: S
+        - AttributeName: geohash4
+          AttributeType: S
+        - AttributeName: geohash5
+          AttributeType: S
+        - AttributeName: pinId
           AttributeType: S
       KeySchema:
         - AttributeName: eventId
@@ -231,6 +250,8 @@ Resources:
         - AttributeName: eventId
           AttributeType: S
         - AttributeName: userId
+          AttributeType: S
+        - AttributeName: registeredAt
           AttributeType: S
       KeySchema:
         - AttributeName: eventId
@@ -596,7 +617,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-user-event.updateUserEvent
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       CodeUri: src/handlers/events
       Description: Updates a user's event registration
       MemorySize: 128
@@ -623,7 +644,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: update-event.updateEvent
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       CodeUri: src/handlers/events
       Description: Updates an event's details
       MemorySize: 128
@@ -650,7 +671,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: complete-event.completeEvent
-      Runtime: nodejs18.x
+      Runtime: nodejs22.x
       CodeUri: src/handlers/events
       Description: Complete an event - assign points to users, update event status, etc.
       MemorySize: 128
@@ -678,10 +699,6 @@ Resources:
           - complete-event.ts
 
 Outputs:
-  WebEndpoint:
-    Description: "API Gateway endpoint URL for Prod stage"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/Prod/"
-
   UsersTableName:
     Value: !Ref Users
     Export:
@@ -731,13 +748,3 @@ Outputs:
     Value: !GetAtt PointTransactions.Arn
     Export:
       Name: !Sub "${Environment}-CleanUpSikkim-PointTransactionsTableArn"
-
-  BadgesTableName:
-    Value: !Ref Badges
-    Export:
-      Name: !Sub "${Environment}-CleanUpSikkim-BadgesTable"
-
-  BadgesTableArn:
-    Value: !GetAtt Badges.Arn
-    Export:
-      Name: !Sub "${Environment}-CleanUpSikkim-BadgesTableArn"
