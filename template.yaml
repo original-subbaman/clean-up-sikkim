@@ -49,6 +49,12 @@ Resources:
         - Name: phone_number
           Required: false # collect it but don't require it at signup
           Mutable: true
+        - Name: custom:city
+          Required: false
+          Mutable: true
+        - Name: custom:state
+          Required: false
+          Mutable: true
       LambdaConfig:
         PostConfirmation: !GetAtt PostConfirmationFunction.Arn
 
