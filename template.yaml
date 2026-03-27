@@ -25,6 +25,7 @@ Parameters:
     Description: "The deployment environment."
 
 Resources:
+  # Cognito User Pool for authentication
   CleanUpSikkimUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -91,6 +92,49 @@ Resources:
       FunctionName: !GetAtt PostConfirmationFunction.Arn
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt CleanUpSikkimUserPool.Arn
+  # S3
+  DumpPinsPhotoBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Sub "${Environment}-cleanup-sikkim-photos"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*" # tighten this to your domain in prod
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedHeaders:
+              - "*"
+            MaxAge: 3000
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 1
+
+  GenerateUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: generate-upload-url.generateUploadUrlHandler
+      CodeUri: src/handlers/storage
+      Runtime: nodejs22.x
+      Environment:
+        Variables:
+          DUMP_PINS_BUCKET: !Ref DumpPinsPhotoBucket
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref DumpPinsPhotoBucket
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CleanUpSikkimApi
+            Path: /upload/presigned-url
+            Method: POST
 
   # DynamoDB tables
   Users:

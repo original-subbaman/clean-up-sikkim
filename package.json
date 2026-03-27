@@ -5,7 +5,9 @@
   "private": true,
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.398.0",
+    "@aws-sdk/client-s3": "^3.1018.0",
     "@aws-sdk/lib-dynamodb": "^3.398.0",
+    "@aws-sdk/s3-request-presigner": "^3.1018.0",
     "ngeohash": "^0.6.3",
     "uuid": "^13.0.0",
     "zod": "^4.3.6"
