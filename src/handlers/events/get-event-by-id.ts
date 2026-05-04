@@ -18,6 +18,7 @@ export async function getEventById(
   try {
     const eventsTable = process.env.EVENTS_TABLE;
     const eventsPartcipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
+    const usersTable = process.env.USERS_TABLE;
     const eventId = event.pathParameters?.eventId;
     if (!eventId) {
       return {
@@ -57,7 +58,7 @@ export async function getEventById(
       const batchResult = await client.send(
         new BatchGetCommand({
           RequestItems: {
-            Users: {
+            [usersTable as string]: {
               Keys: userIds.map((userId) => ({ userId })),
               ProjectionExpression: "#uid, #nm",
               ExpressionAttributeNames: {
@@ -68,7 +69,7 @@ export async function getEventById(
           },
         }),
       );
-      const users = batchResult.Responses?.Users || [];
+      const users = batchResult.Responses?.[usersTable as string] || [];
       users.forEach((user: any) => {
         userNamesMap[user.userId] = user.name || null;
       });
