@@ -1,6 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import ngeohash from "ngeohash";
 import { v4 as uuidv4 } from "uuid";
 import { eventSchema } from "../../models/eventSchema";
 import { EVENT_STATUS } from "../../utils/constants";
@@ -74,6 +75,7 @@ export const createEventHandler = async (
     }
 
     const eventId = uuidv4();
+    const geohash = ngeohash.encode(eventData.lat, eventData.lng, 6);
 
     await client.send(
       new PutCommand({
@@ -81,8 +83,9 @@ export const createEventHandler = async (
         Item: {
           ...eventData,
           eventId: eventId,
-          geohash4: eventData.geohash.substring(0, 4),
-          geohash5: eventData.geohash.substring(0, 5),
+          geohash: geohash,
+          geohash4: geohash.substring(0, 4),
+          geohash5: geohash.substring(0, 5),
           status: EVENT_STATUS.ACTIVE,
           createdAt: new Date().toISOString(),
         },

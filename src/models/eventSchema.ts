@@ -7,7 +7,8 @@ export const eventSchema = z.object({
   description: z.string().max(500).optional(),
   scheduledAt: z.string(), // ISO date string
   organizedBy: z.string(),
-  geohash: z.string().min(1).max(12),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
   participantCount: z.number().min(0).optional(),
   maxParticipants: z.number().min(1).optional(),
   pointsAwarded: z.number().min(0).optional(),
