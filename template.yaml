@@ -56,9 +56,6 @@ Resources:
         - Name: custom:state
           Required: false
           Mutable: true
-      LambdaConfig:
-        PostConfirmation: !GetAtt PostConfirmationFunction.Arn
-
   CleanUpSikkimUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
@@ -72,26 +69,6 @@ Resources:
       IdTokenValidity: 1
       RefreshTokenValidity: 30
 
-  PostConfirmationFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "${Environment}-PostConfirmation"
-      Handler: src/functions/auth/postConfirmation.handler
-      Runtime: nodejs20.x
-      Environment:
-        Variables:
-          USERS_TABLE: !Ref Users
-      Policies:
-        - DynamoDBWritePolicy:
-            TableName: !Ref Users
-
-  PostConfirmationFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt PostConfirmationFunction.Arn
-      Principal: cognito-idp.amazonaws.com
-      SourceArn: !GetAtt CleanUpSikkimUserPool.Arn
   # S3
   DumpPinsPhotoBucket:
     Type: AWS::S3::Bucket
