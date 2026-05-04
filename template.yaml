@@ -25,50 +25,6 @@ Parameters:
     Description: "The deployment environment."
 
 Resources:
-  # Cognito User Pool for authentication
-  CleanUpSikkimUserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: !Sub "${Environment}-CleanUpSikkim-UserPool"
-      UsernameAttributes:
-        - email # login with email
-      AutoVerifiedAttributes:
-        - email # Cognito sends verification email automatically
-      Policies:
-        PasswordPolicy:
-          MinimumLength: 8
-          RequireUppercase: true
-          RequireNumbers: true
-          RequireSymbols: false
-      Schema:
-        - Name: email
-          Required: true
-          Mutable: false
-        - Name: name
-          Required: true
-          Mutable: true
-        - Name: phone_number
-          Required: false # collect it but don't require it at signup
-          Mutable: true
-        - Name: custom:city
-          Required: false
-          Mutable: true
-        - Name: custom:state
-          Required: false
-          Mutable: true
-  CleanUpSikkimUserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: !Sub "${Environment}-CleanUpSikkim-UserPoolClient"
-      UserPoolId: !Ref CleanUpSikkimUserPool
-      GenerateSecret: false
-      ExplicitAuthFlows:
-        - ALLOW_USER_SRP_AUTH # secure password auth
-        - ALLOW_REFRESH_TOKEN_AUTH
-      AccessTokenValidity: 1
-      IdTokenValidity: 1
-      RefreshTokenValidity: 30
-
   # S3
   DumpPinsPhotoBucket:
     Type: AWS::S3::Bucket
@@ -109,7 +65,6 @@ Resources:
         Api:
           Type: Api
           Properties:
-            RestApiId: !Ref CleanUpSikkimApi
             Path: /upload/presigned-url
             Method: POST
 
