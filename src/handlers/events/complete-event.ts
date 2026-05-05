@@ -37,12 +37,18 @@ export async function completeEvent(
     const usersTable = process.env.USERS_TABLE;
     const dumpPinsTable = process.env.DUMP_PINS_TABLE;
     const eventId = event.pathParameters?.eventId;
-    // const organizerId = event.requestContext.authorizer?.claims?.sub;
-    const organizerId = "user_xyz789"; // Placeholder for testing
-    if (!eventId || !organizerId) {
+    const organizerId = event.requestContext.authorizer?.claims?.sub;
+    if (!eventId) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: "Invalid request" }),
+      };
+    }
+
+    if (!organizerId) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: "Unauthorized" }),
       };
     }
 

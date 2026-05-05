@@ -24,7 +24,19 @@ Parameters:
       - prod
     Description: "The deployment environment."
 
+  CognitoUserPoolArn:
+    Type: String
+
 Resources:
+  CleanUpSikkimApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !Ref CognitoUserPoolArn
   # S3
   DumpPinsPhotoBucket:
     Type: AWS::S3::Bucket
@@ -66,6 +78,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /upload/presigned-url
             Method: POST
 
@@ -291,8 +304,11 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /trash-dumps
             Method: GET
+            Auth:
+              Authorizer: NONE
       Environment:
         Variables:
           DUMP_PINS_TABLE: !Ref DumpPins
@@ -323,6 +339,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /trash-dumps
             Method: POST
       Environment:
@@ -355,6 +372,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /trash-dumps
             Method: DELETE
       Environment:
@@ -387,6 +405,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /trash-dumps
             Method: PATCH
       Environment:
@@ -419,6 +438,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /users
             Method: POST
       Environment:
@@ -452,6 +472,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events
             Method: POST
       Environment:
@@ -487,8 +508,11 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events
             Method: GET
+            Auth:
+              Authorizer: NONE
       Environment:
         Variables:
           EVENTS_TABLE: !Ref Events
@@ -521,8 +545,11 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/{eventId}
             Method: GET
+            Auth:
+              Authorizer: NONE
       Environment:
         Variables:
           EVENTS_TABLE: !Ref Events
@@ -557,6 +584,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/signup
             Method: POST
       Environment:
@@ -593,6 +621,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/user/{userId}
             Method: GET
       Environment:
@@ -625,6 +654,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /users/{userId}/points-history
             Method: GET
       Environment:
@@ -655,6 +685,7 @@ Resources:
         UpdateUserEventApi:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/{eventId}/users/{userId}
             Method: PUT
       Environment:
@@ -685,6 +716,7 @@ Resources:
         UpdateEventApi:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/{eventId}
             Method: PUT
       Environment:
@@ -715,6 +747,7 @@ Resources:
         completeEventApi:
           Type: Api
           Properties:
+            RestApiId: !Ref CleanUpSikkimApi
             Path: /events/{eventId}/complete
             Method: POST
       Environment:
