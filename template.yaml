@@ -24,10 +24,64 @@ Parameters:
       - prod
     Description: "The deployment environment."
 
-  CognitoUserPoolArn:
-    Type: String
-
 Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      UserPoolName: !Sub "${Environment}-cleanup-sikkim-users"
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: city
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: state
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
+
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub "${Environment}-cleanup-sikkim-app"
+      UserPoolId: !Ref CognitoUserPool
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      ReadAttributes:
+        - email
+        - name
+        - custom:city
+        - custom:state
+      WriteAttributes:
+        - email
+        - name
+        - custom:city
+        - custom:state
+
   CleanUpSikkimApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -36,7 +90,7 @@ Resources:
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
           CognitoAuthorizer:
-            UserPoolArn: !Ref CognitoUserPoolArn
+            UserPoolArn: !GetAtt CognitoUserPool.Arn
   # S3
   DumpPinsPhotoBucket:
     Type: AWS::S3::Bucket
@@ -457,6 +511,41 @@ Resources:
         EntryPoints:
           - create-user.ts
 
+  PostAuthConfirmation:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: postAuthConfirmation.postAuthConfirmation
+      CodeUri: src/handlers/auth
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Cognito post-confirmation trigger that creates a user record.
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref Users
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+              Resource: !GetAtt Users.Arn
+      Events:
+        CognitoPostConfirmation:
+          Type: Cognito
+          Properties:
+            UserPool: !Ref CognitoUserPool
+            Trigger: PostConfirmation
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - postAuthConfirmation.ts
+
   CreateEvent:
     Type: AWS::Serverless::Function
     Properties:
@@ -782,6 +871,21 @@ Resources:
           - complete-event.ts
 
 Outputs:
+  CognitoUserPoolId:
+    Value: !Ref CognitoUserPool
+    Export:
+      Name: !Sub "${Environment}-CleanUpSikkim-CognitoUserPoolId"
+
+  CognitoUserPoolArn:
+    Value: !GetAtt CognitoUserPool.Arn
+    Export:
+      Name: !Sub "${Environment}-CleanUpSikkim-CognitoUserPoolArn"
+
+  CognitoUserPoolClientId:
+    Value: !Ref CognitoUserPoolClient
+    Export:
+      Name: !Sub "${Environment}-CleanUpSikkim-CognitoUserPoolClientId"
+
   UsersTableName:
     Value: !Ref Users
     Export:
@@ -791,6 +895,11 @@ Outputs:
     Value: !GetAtt Users.Arn
     Export:
       Name: !Sub "${Environment}-CleanUpSikkim-UsersTableArn"
+
+  PostAuthConfirmationFunctionArn:
+    Value: !GetAtt PostAuthConfirmation.Arn
+    Export:
+      Name: !Sub "${Environment}-CleanUpSikkim-PostAuthConfirmationFunctionArn"
 
   DumpPinsTableName:
     Value: !Ref DumpPins
