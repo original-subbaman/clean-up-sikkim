@@ -1,99 +1,69 @@
+import { apiResponse } from "../../utils/helper";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  QueryCommand,
-  BatchGetCommand,
-} from "@aws-sdk/lib-dynamodb";
-
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, BatchGetCommand, } from "@aws-sdk/lib-dynamodb";
 const baseClient = new DynamoDBClient({
-  region: "ap-south-1",
+    region: "ap-south-1",
 });
 const client = DynamoDBDocumentClient.from(baseClient);
-
-export async function getEventById(
-  event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> {
-  try {
-    const eventsTable = process.env.EVENTS_TABLE;
-    const eventsPartcipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
-    const usersTable = process.env.USERS_TABLE;
-    const eventId = event.pathParameters?.eventId;
-    if (!eventId) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ message: "Event ID is required" }),
-      };
+export async function getEventById(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+    try {
+        const eventsTable = process.env.EVENTS_TABLE;
+        const eventsPartcipantsTable = process.env.EVENT_PARTICIPANTS_TABLE;
+        const usersTable = process.env.USERS_TABLE;
+        const eventId = event.pathParameters?.eventId;
+        if (!eventId) {
+            return apiResponse(400, { message: "Event ID is required" });
+        }
+        const [eventDetails, participantsResult] = await Promise.all([
+            client.send(new GetCommand({
+                TableName: eventsTable,
+                Key: { eventId },
+            })),
+            client.send(new QueryCommand({
+                TableName: eventsPartcipantsTable,
+                KeyConditionExpression: "eventId = :eventId",
+                ExpressionAttributeValues: { ":eventId": eventId },
+            })),
+        ]);
+        if (!eventDetails.Item) {
+            return apiResponse(404, { message: "Event not found" });
+        }
+        const participants = participantsResult.Items || [];
+        const userIds = participants.map((p) => p.userId).filter((id) => !!id);
+        let userNamesMap: Record<string, string | null> = {};
+        if (userIds.length > 0) {
+            const batchResult = await client.send(new BatchGetCommand({
+                RequestItems: {
+                    [usersTable as string]: {
+                        Keys: userIds.map((userId) => ({ userId })),
+                        ProjectionExpression: "#uid, #nm",
+                        ExpressionAttributeNames: {
+                            "#uid": "userId",
+                            "#nm": "name",
+                        },
+                    },
+                },
+            }));
+            const users = batchResult.Responses?.[usersTable as string] || [];
+            users.forEach((user: any) => {
+                userNamesMap[user.userId] = user.name || null;
+            });
+        }
+        const participantDetails = participants.map((participant) => {
+            return {
+                ...participant,
+                name: userNamesMap[participant.userId] ?? null,
+            };
+        });
+        return apiResponse(200, {
+            event: eventDetails.Item,
+            participants: participantDetails,
+        });
     }
-
-    const [eventDetails, participantsResult] = await Promise.all([
-      client.send(
-        new GetCommand({
-          TableName: eventsTable,
-          Key: { eventId },
-        }),
-      ),
-      client.send(
-        new QueryCommand({
-          TableName: eventsPartcipantsTable,
-          KeyConditionExpression: "eventId = :eventId",
-          ExpressionAttributeValues: { ":eventId": eventId },
-        }),
-      ),
-    ]);
-
-    if (!eventDetails.Item) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: "Event not found" }),
-      };
+    catch (error) {
+        console.log("🚀 ~ getEventById ~ error:", error);
+        return apiResponse(500, { message: "Internal server error" });
     }
-
-    const participants = participantsResult.Items || [];
-    const userIds = participants.map((p) => p.userId).filter((id) => !!id);
-
-    let userNamesMap: Record<string, string | null> = {};
-    if (userIds.length > 0) {
-      const batchResult = await client.send(
-        new BatchGetCommand({
-          RequestItems: {
-            [usersTable as string]: {
-              Keys: userIds.map((userId) => ({ userId })),
-              ProjectionExpression: "#uid, #nm",
-              ExpressionAttributeNames: {
-                "#uid": "userId",
-                "#nm": "name",
-              },
-            },
-          },
-        }),
-      );
-      const users = batchResult.Responses?.[usersTable as string] || [];
-      users.forEach((user: any) => {
-        userNamesMap[user.userId] = user.name || null;
-      });
-    }
-
-    const participantDetails = participants.map((participant) => {
-      return {
-        ...participant,
-        name: userNamesMap[participant.userId] ?? null,
-      };
-    });
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        event: eventDetails.Item,
-        participants: participantDetails,
-      }),
-    };
-  } catch (error) {
-    console.log("🚀 ~ getEventById ~ error:", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: "Internal server error" }),
-    };
-  }
 }
+
