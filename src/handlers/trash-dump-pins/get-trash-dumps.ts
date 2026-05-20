@@ -1,10 +1,14 @@
 import { apiResponse } from "../../utils/helper";
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import ngeohash from "ngeohash";
-const client = new DynamoDBClient({
+
+const baseClient = new DynamoDBClient({
     region: "ap-south-1",
 });
+const client = DynamoDBDocumentClient.from(baseClient);
+
 export const getTrashDumpsHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     try {
         const dumpPinsTable = process.env.DUMP_PINS_TABLE;
@@ -23,7 +27,7 @@ export const getTrashDumpsHandler = async (event: APIGatewayProxyEvent): Promise
             IndexName: "GSI-Geohash",
             KeyConditionExpression: "geohash = :g",
             ExpressionAttributeValues: {
-                ":g": { S: g },
+                ":g": g,
             },
         }))));
         const allPins = results.flatMap((r) => r.Items ?? []);
@@ -35,4 +39,3 @@ export const getTrashDumpsHandler = async (event: APIGatewayProxyEvent): Promise
         return apiResponse(500, { message });
     }
 };
-
