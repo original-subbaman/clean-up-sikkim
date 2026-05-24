@@ -6,7 +6,6 @@ export const eventSchema = z.object({
   name: z.string().min(2).max(100),
   description: z.string().max(500).optional(),
   scheduledAt: z.string(), // ISO date string
-  organizedBy: z.string(),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   participantCount: z.number().min(0).optional(),
