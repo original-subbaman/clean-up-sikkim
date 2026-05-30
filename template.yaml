@@ -194,6 +194,10 @@ Resources:
           AttributeType: S
         - AttributeName: geohash
           AttributeType: S
+        - AttributeName: geohash4
+          AttributeType: S
+        - AttributeName: geohash5
+          AttributeType: S
         - AttributeName: city
           AttributeType: S
         - AttributeName: state
@@ -212,6 +216,22 @@ Resources:
         - IndexName: GSI-Geohash
           KeySchema:
             - AttributeName: geohash
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI-Geohash4
+          KeySchema:
+            - AttributeName: geohash4
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI-Geohash5
+          KeySchema:
+            - AttributeName: geohash5
               KeyType: HASH
             - AttributeName: createdAt
               KeyType: RANGE
