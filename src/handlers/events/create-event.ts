@@ -79,6 +79,7 @@ export const createEventHandler = async (
           organizeBy: organizeBy,
           eventId: eventId,
           geohash: geohash,
+          geohash3: geohash.substring(0, 3),
           geohash4: geohash.substring(0, 4),
           geohash5: geohash.substring(0, 5),
           status: EVENT_STATUS.ACTIVE,
