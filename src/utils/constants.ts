@@ -20,19 +20,22 @@ const USER_EVENT_STATUS = {
 
 const RANGE_CONFIG = {
   "1km": {
-    geohashLength: 6,
-    indexName: "GSI-Geohash-Time",
-    attribute: "geohash",
-  },
-  "5km": {
     geohashLength: 5,
+    radiusKm: 1,
     indexName: "GSI-Geohash5-Time",
     attribute: "geohash5",
   },
-  "20km": {
+  "5km": {
     geohashLength: 4,
+    radiusKm: 5,
     indexName: "GSI-Geohash4-Time",
     attribute: "geohash4",
+  },
+  "20km": {
+    geohashLength: 3,
+    radiusKm: 20,
+    indexName: "GSI-Geohash3-Time",
+    attribute: "geohash3",
   },
 } as const;
 

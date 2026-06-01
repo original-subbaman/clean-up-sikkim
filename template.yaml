@@ -273,6 +273,8 @@ Resources:
           AttributeType: S
         - AttributeName: scheduledAt
           AttributeType: S
+        - AttributeName: geohash3
+          AttributeType: S
         - AttributeName: geohash4
           AttributeType: S
         - AttributeName: geohash5
@@ -287,6 +289,14 @@ Resources:
         - IndexName: GSI-Geohash-Time
           KeySchema:
             - AttributeName: geohash
+              KeyType: HASH
+            - AttributeName: scheduledAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: GSI-Geohash3-Time
+          KeySchema:
+            - AttributeName: geohash3
               KeyType: HASH
             - AttributeName: scheduledAt
               KeyType: RANGE
@@ -617,7 +627,7 @@ Resources:
         - x86_64
       MemorySize: 128
       Timeout: 10
-      Description: Get events by geohash and its neighbors.
+      Description: Get nearby events by geohash.
       Events:
         Api:
           Type: Api
