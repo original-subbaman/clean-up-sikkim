@@ -434,9 +434,12 @@ Resources:
       Environment:
         Variables:
           DUMP_PINS_TABLE: !Ref DumpPins
+          USERS_TABLE: !Ref Users
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref DumpPins
+        - DynamoDBReadPolicy:
+            TableName: !Ref Users
     Metadata:
       BuildMethod: esbuild
       BuildProperties:

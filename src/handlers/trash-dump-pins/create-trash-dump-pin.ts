@@ -1,21 +1,33 @@
 import { apiResponse } from "../../utils/helper";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  QueryCommand,
+} from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import ngeohash from "ngeohash";
 import { v4 as uuidv4 } from "uuid";
 import { dumpPinSchema } from "../../models/dumpPinSchema";
 import { PIN_STATUS } from "../../utils/constants";
-const client = new DynamoDBClient({
-  region: "ap-south-1",
-});
-// TODO: Add authentication and associate reportedBy with user info from auth token instead of accepting it in request body. This will prevent impersonation and ensure data integrity.
+const client = DynamoDBDocumentClient.from(
+  new DynamoDBClient({
+    region: "ap-south-1",
+  }),
+);
+
 export const createTrashDumpPinHandler = async (
   event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   let body;
   const dumpPinsTable = process.env.DUMP_PINS_TABLE;
+  const userTable = process.env.USERS_TABLE;
   try {
+    if (!dumpPinsTable || !userTable) {
+      throw new Error("Required DynamoDB table environment variables are not set");
+    }
+
     body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const parseResult = dumpPinSchema.safeParse(body);
     if (!parseResult.success) {
@@ -25,6 +37,25 @@ export const createTrashDumpPinHandler = async (
       });
     }
     const userId = event.requestContext.authorizer?.claims?.sub;
+    if (!userId) {
+      return apiResponse(401, { message: "Unauthorized" });
+    }
+
+    const user = await client.send(
+      new GetCommand({
+        TableName: userTable,
+        Key: {
+          userId,
+        },
+      }),
+    );
+    if (!user.Item) {
+      return apiResponse(404, { message: "User profile not found" });
+    }
+    if (!user.Item.name) {
+      return apiResponse(400, { message: "User profile name is not set" });
+    }
+
     const geohash = ngeohash.encode(
       parseResult.data.lat,
       parseResult.data.lng,
@@ -66,6 +97,7 @@ export const createTrashDumpPinHandler = async (
       geohash4: geohash.substring(0, 4),
       status: PIN_STATUS.OPEN,
       reportedBy: userId,
+      reporterName: user.Item.name,
     };
     await client.send(
       new PutCommand({
