@@ -90,6 +90,19 @@ Resources:
         AllowMethods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
         AllowHeaders: "'Content-Type,Authorization'"
         AllowOrigin: "'*'"
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Methods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'*'"
+              Access-Control-Allow-Headers: "'Content-Type,Authorization'"
+              Access-Control-Allow-Methods: "'GET,POST,PUT,PATCH,DELETE,OPTIONS'"
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         AddDefaultAuthorizerToCorsPreflight: false
@@ -140,6 +153,14 @@ Resources:
             RestApiId: !Ref CleanUpSikkimApi
             Path: /upload/presigned-url
             Method: POST
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - generate-upload-url.ts
 
   # DynamoDB tables
   Users:
