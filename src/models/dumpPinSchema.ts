@@ -7,7 +7,7 @@ export const dumpPinSchema = z.object({
   lat: z.coerce.number().min(-90).max(90),
   lng: z.coerce.number().min(-180).max(180),
   severity: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
-  photo: z.unknown().optional(),
+  photoUrls: z.array(z.url()).optional(),
 });
 
 export type DumpPin = z.infer<typeof dumpPinSchema>;
