@@ -25,7 +25,9 @@ export const createTrashDumpPinHandler = async (
   const userTable = process.env.USERS_TABLE;
   try {
     if (!dumpPinsTable || !userTable) {
-      throw new Error("Required DynamoDB table environment variables are not set");
+      throw new Error(
+        "Required DynamoDB table environment variables are not set",
+      );
     }
 
     body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
