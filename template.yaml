@@ -422,9 +422,12 @@ Resources:
       Environment:
         Variables:
           DUMP_PINS_TABLE: !Ref DumpPins
+          DUMP_PINS_BUCKET: !Ref DumpPinsPhotoBucket
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Ref DumpPins
+        - S3ReadPolicy:
+            BucketName: !Ref DumpPinsPhotoBucket
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
