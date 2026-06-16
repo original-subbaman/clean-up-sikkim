@@ -2,12 +2,35 @@ import { apiResponse } from "../../utils/helper";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import ngeohash from "ngeohash";
 
 const baseClient = new DynamoDBClient({
   region: "ap-south-1",
 });
 const client = DynamoDBDocumentClient.from(baseClient);
+const s3Client = new S3Client({});
+const bucketName = process.env.DUMP_PINS_BUCKET;
+
+async function getPhotoUrls(photoKeys?: string[]) {
+  if (!bucketName || !photoKeys?.length) {
+    return [];
+  }
+
+  return Promise.all(
+    photoKeys.map((photoKey) =>
+      getSignedUrl(
+        s3Client,
+        new GetObjectCommand({
+          Bucket: bucketName,
+          Key: photoKey,
+        }),
+        { expiresIn: 60 * 60 },
+      ),
+    ),
+  );
+}
 
 export const getTrashDumpsHandler = async (
   event: APIGatewayProxyEvent,
@@ -39,9 +62,18 @@ export const getTrashDumpsHandler = async (
       ),
     );
     const allPins = results.flatMap((r) => r.Items ?? []);
+    const pinsWithPhotoUrls = await Promise.all(
+      allPins.map(async (pin) => ({
+        ...pin,
+        photoUrls: await getPhotoUrls(pin.photoKey),
+      })),
+    );
+
     return apiResponse(
       200,
-      allPins.length > 0 ? allPins : { message: "No data found" },
+      pinsWithPhotoUrls.length > 0
+        ? pinsWithPhotoUrls
+        : { message: "No data found" },
     );
   } catch (error) {
     console.error(error);
