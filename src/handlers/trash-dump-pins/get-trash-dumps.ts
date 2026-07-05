@@ -1,5 +1,8 @@
 import { apiResponse } from "../../utils/helper";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  ReturnConsumedCapacity,
+} from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
@@ -40,6 +43,7 @@ export const getTrashDumpsHandler = async (
     const queryStrParams = event.queryStringParameters || {};
     const lat = queryStrParams?.lat ? parseFloat(queryStrParams.lat) : 27.3314;
     const lng = queryStrParams?.lng ? parseFloat(queryStrParams.lng) : 88.6138;
+    const status = queryStrParams?.status || "OPEN";
     if (isNaN(lat) || isNaN(lng)) {
       return apiResponse(400, { message: "Invalid latitude or longitude" });
     }
@@ -54,9 +58,15 @@ export const getTrashDumpsHandler = async (
             TableName: dumpPinsTable,
             IndexName: "GSI-Geohash4",
             KeyConditionExpression: "geohash4 = :g",
+            ExpressionAttributeNames: {
+              "#status": "status",
+            },
             ExpressionAttributeValues: {
               ":g": g,
+              ":s": status,
             },
+            FilterExpression: "#status = :s",
+            ReturnConsumedCapacity: ReturnConsumedCapacity.INDEXES,
           }),
         ),
       ),
@@ -67,6 +77,10 @@ export const getTrashDumpsHandler = async (
         ...pin,
         photoUrls: await getPhotoUrls(pin.photoKey),
       })),
+    );
+
+    console.log(
+      `Consumed capacity for query: ${JSON.stringify(results.reduce((total, r) => total + (r.ConsumedCapacity?.CapacityUnits || 0), 0))} `,
     );
 
     return apiResponse(
