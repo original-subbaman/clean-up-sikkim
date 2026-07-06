@@ -43,7 +43,15 @@ export const getTrashDumpsHandler = async (
     const queryStrParams = event.queryStringParameters || {};
     const lat = queryStrParams?.lat ? parseFloat(queryStrParams.lat) : 27.3314;
     const lng = queryStrParams?.lng ? parseFloat(queryStrParams.lng) : 88.6138;
-    const status = queryStrParams?.status || "OPEN";
+    const requestedStatuses = (queryStrParams.status || "OPEN")
+      .split(",")
+      .map((status) => status.trim())
+      .filter(Boolean);
+    const statuses = requestedStatuses.length > 0 ? requestedStatuses : ["OPEN"];
+    const statusPlaceholders = statuses.map((_, index) => `:s${index}`);
+    const statusValues = Object.fromEntries(
+      statuses.map((status, index) => [`:s${index}`, status]),
+    );
     if (isNaN(lat) || isNaN(lng)) {
       return apiResponse(400, { message: "Invalid latitude or longitude" });
     }
@@ -63,9 +71,9 @@ export const getTrashDumpsHandler = async (
             },
             ExpressionAttributeValues: {
               ":g": g,
-              ":s": status,
+              ...statusValues,
             },
-            FilterExpression: "#status = :s",
+            FilterExpression: `#status IN (${statusPlaceholders.join(", ")})`,
             ReturnConsumedCapacity: ReturnConsumedCapacity.INDEXES,
           }),
         ),
