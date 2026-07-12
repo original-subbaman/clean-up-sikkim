@@ -97,7 +97,7 @@ export const createTrashDumpPinHandler = async (
       geohash: geohash,
       geohash5: geohash.substring(0, 5),
       geohash4: geohash.substring(0, 4),
-      status: PIN_STATUS.OPEN,
+      status: PIN_STATUS.REPORTED,
       reportedBy: userId,
       reporterName: user.Item.name,
     };
