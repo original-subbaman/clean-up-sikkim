@@ -283,6 +283,22 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  DumpPinReaction:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub "${Environment}-DumpPinReactions"
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pinId
+          AttributeType: S
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pinId
+          KeyType: HASH
+        - AttributeName: userId
+          KeyType: RANGE
+
   Events:
     Type: AWS::DynamoDB::Table
     Properties:
