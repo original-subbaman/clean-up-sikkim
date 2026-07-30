@@ -98,6 +98,9 @@ export const createTrashDumpPinHandler = async (
       geohash5: geohash.substring(0, 5),
       geohash4: geohash.substring(0, 4),
       status: PIN_STATUS.REPORTED,
+      upvoteCount: 0,
+      flagCount: 0,
+      statusVersion: 0,
       reportedBy: userId,
       reporterName: user.Item.name,
     };

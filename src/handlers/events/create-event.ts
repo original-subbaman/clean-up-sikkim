@@ -31,7 +31,7 @@ export const createEventHandler = async (
     }
     const eventData = parseResult.data;
     const pinId = eventData.pinId;
-    const organizeBy = event.requestContext.authorizer?.claims?.sub;
+    const organizedBy = event.requestContext.authorizer?.claims?.sub;
 
     const isValidPinId = await client.send(
       new QueryCommand({
@@ -76,7 +76,7 @@ export const createEventHandler = async (
         TableName: eventsTable,
         Item: {
           ...eventData,
-          organizeBy: organizeBy,
+          organizedBy,
           eventId: eventId,
           geohash: geohash,
           geohash3: geohash.substring(0, 3),
