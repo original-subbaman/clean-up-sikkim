@@ -109,7 +109,7 @@ export async function completeEvent(event: APIGatewayProxyEvent): Promise<APIGat
                     "#status": "status",
                 },
                 ExpressionAttributeValues: {
-                    ":closed": PIN_STATUS.CLOSED,
+                    ":closed": PIN_STATUS.CLEANED,
                 },
             },
         });
@@ -156,4 +156,3 @@ async function fetchUsersWhoAttendedEvent(client: DynamoDBDocumentClient, eventI
     } while (lastEvaluatedKey);
     return userIds;
 }
-
