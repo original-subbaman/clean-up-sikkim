@@ -1,6 +1,7 @@
 // src/utils/parseEventBody.ts
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
+import { PIN_STATUS } from "./constants";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -42,4 +43,33 @@ export function parseAndValidateEventBody<T>(
     return schema.safeParse(undefined);
   }
   return schema.safeParse(parsed);
+}
+
+type DerivePinStatusInput = {
+  currentStatus: string;
+  upvoteCount: number;
+  flagCount: number;
+  verificationThreshold: number;
+  rejectionThreshold: number;
+};
+
+export function derivePinStatus({
+  currentStatus,
+  upvoteCount,
+  flagCount,
+  verificationThreshold,
+  rejectionThreshold,
+}: DerivePinStatusInput): string {
+  if (flagCount >= rejectionThreshold) {
+    return PIN_STATUS.REJECTED;
+  }
+
+  if (
+    currentStatus === PIN_STATUS.REPORTED &&
+    upvoteCount >= verificationThreshold
+  ) {
+    return PIN_STATUS.VERIFIED;
+  }
+
+  return currentStatus;
 }

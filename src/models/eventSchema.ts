@@ -15,4 +15,6 @@ export const eventSchema = z.object({
   status: z.enum(EVENT_STATUS).optional(),
 });
 
-export type Event = z.infer<typeof eventSchema>;
+export type Event = z.infer<typeof eventSchema> & {
+  organizedBy?: string;
+};
