@@ -533,6 +533,39 @@ Resources:
         EntryPoints:
           - react-to-trash-dump-pin.ts
 
+  GetPinReaction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get-pin-reaction.getPinReactionHandler
+      CodeUri: src/handlers/trash-dump-pins
+      Runtime: nodejs22.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 10
+      Description: Get a reaction of a user for a given trash dump pin.
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            RestApiId: !Ref CleanUpSikkimApi
+            Path: /trash-dumps/{pinId}/reactions
+            Method: GET
+      Environment:
+        Variables:
+          DUMP_PINS_REACTION_TABLE: !Ref DumpPinReaction
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref DumpPinReaction
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: es2022
+        Sourcemap: true
+        EntryPoints:
+          - get-pin-reaction.ts
+
   DeleteTrashDumpPin:
     Type: AWS::Serverless::Function
     Properties:
